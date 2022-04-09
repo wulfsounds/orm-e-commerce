@@ -1,9 +1,8 @@
 // import models
-const Product = require('./Product');
+const Product = require('./Product').default;
 const Category = require('./Category');
 const Tag = require('./Tag');
 const ProductTag = require('./ProductTag');
-const { triggerAsyncId } = require('async_hooks');
 
 // Products belongsTo Category
 Product.belongsTo(Category, {
