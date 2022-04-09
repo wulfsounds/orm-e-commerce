@@ -7,7 +7,7 @@ router.get('/', async (req, res) => {
   // find all categories
   try {
     const categoryData = await Category.findAll(req.params.id, {
-      include: [{ model: Product, through: ProductTag, as: 'product_tag' }]
+      include: [{ model: Product, through: Category, as: 'category_id' }]
     });
     if (!categoryData) {
       res.status(404).json({ message: 'No category found with this id!' });
@@ -23,7 +23,7 @@ router.get('/:id', async (req, res) => {
   // find one category by its `id` value
   try {
     const categoryData = await Category.findByPk(req.params.id, {
-      include: [{ model: Product, through: ProductTag, as: 'product_tag' }]
+      include: [{ model: Product, through: Category, as: 'category_id' }]
     });
     if (!categoryData) {
       res.status(404).json({ message: 'No category found with this id!' });
@@ -45,20 +45,20 @@ router.post('/', async (req, res) => {
   }
   Category.create(req.body)
     .then((category) => {
-      // if there's category tags, we need to create pairings to bulk create in the ProductTag model
+      // if there's category tags, we need to create pairings to bulk create in the Category model
       if (req.body.tagIds.length) {
         const productTagIdArr = req.body.tagIds.map((tag_id) => {
           return {
-            product_id: category.id,
+            category_id: category.id,
             tag_id,
           };
         });
-        return ProductTag.bulkCreate(productTagIdArr);
+        return Category.bulkCreate(productTagIdArr);
       }
       // if no category tags, just respond
       res.status(200).json(category);
     })
-    .then((productTagIds) => res.status(200).json(productTagIds))
+    .then((CategoryId) => res.status(200).json(CategoryId))
     .catch((err) => {
       console.log(err);
       res.status(400).json(err);
@@ -74,33 +74,33 @@ router.put('/:id', async (req, res) => {
     },
   })
     .then((category) => {
-      // find all associated tags from ProductTag
-      return ProductTag.findAll({ where: { product_id: req.params.id } });
+      // find all associated tags from Category
+      return Category.findAll({ where: { category_id: req.params.id } });
     })
-    .then((productTags) => {
+    .then((Categories) => {
       // get list of current tag_ids
-      const productTagIds = productTags.map(({ tag_id }) => tag_id);
+      const CategoryId = Categories.map(({ tag_id }) => tag_id);
       // create filtered list of new tag_ids
-      const newProductTags = req.body.tagIds
-        .filter((tag_id) => !productTagIds.includes(tag_id))
+      const newCatagory = req.body.tagIds
+        .filter((tag_id) => !CategoryId.includes(tag_id))
         .map((tag_id) => {
           return {
-            product_id: req.params.id,
+            category_id: req.params.id,
             tag_id,
           };
         });
       // figure out which ones to remove
-      const productTagsToRemove = productTags
+      const categoryTagsToRemove = Categories
         .filter(({ tag_id }) => !req.body.tagIds.includes(tag_id))
         .map(({ id }) => id);
 
       // run both actions
       return Promise.all([
-        ProductTag.destroy({ where: { id: productTagsToRemove } }),
-        ProductTag.bulkCreate(newProductTags),
+        Category.destroy({ where: { id: categoryTagsToRemove } }),
+        Category.bulkCreate(newCatagory),
       ]);
     })
-    .then((updatedProductTags) => res.json(updatedProductTags))
+    .then((updatedCategoryTags) => res.json(updatedCategoryTags))
     .catch((err) => {
       // console.log(err);
       res.status(400).json(err);
