@@ -43,7 +43,7 @@ Product.init(
     }
   },
   {
-    catagory_id: {
+    category_id: {
       type: DataTypes.INTEGER,
       allowNull: false,
       reference: {
