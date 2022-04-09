@@ -3,6 +3,7 @@ const { Category, Product } = require('../../models');
 
 // The `/api/categories` endpoint
 
+
 router.get('/', async (req, res) => {
   // find all categories
   try {
@@ -47,13 +48,13 @@ router.post('/', async (req, res) => {
     .then((category) => {
       // if there's category tags, we need to create pairings to bulk create in the Category model
       if (req.body.tagIds.length) {
-        const productTagIdArr = req.body.tagIds.map((tag_id) => {
+        const categoryTagIdArr = req.body.tagIds.map((tag_id) => {
           return {
             category_id: category.id,
             tag_id,
           };
         });
-        return Category.bulkCreate(productTagIdArr);
+        return Category.bulkCreate(categoryTagIdArr);
       }
       // if no category tags, just respond
       res.status(200).json(category);
@@ -81,7 +82,7 @@ router.put('/:id', async (req, res) => {
       // get list of current tag_ids
       const CategoryId = Categories.map(({ tag_id }) => tag_id);
       // create filtered list of new tag_ids
-      const newCatagory = req.body.tagIds
+      const newCategory = req.body.tagIds
         .filter((tag_id) => !CategoryId.includes(tag_id))
         .map((tag_id) => {
           return {
@@ -97,7 +98,7 @@ router.put('/:id', async (req, res) => {
       // run both actions
       return Promise.all([
         Category.destroy({ where: { id: categoryTagsToRemove } }),
-        Category.bulkCreate(newCatagory),
+        Category.bulkCreate(newCategory),
       ]);
     })
     .then((updatedCategoryTags) => res.json(updatedCategoryTags))
