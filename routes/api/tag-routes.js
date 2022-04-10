@@ -27,45 +27,24 @@ router.get('/:id', async (req, res) => {
     }
 });
 
+// create new tag
 router.post('/', async (req, res) => {
+  // create a new category
   try {
-    await Tag.update(req.body, { where: { id: req.params.id }})
-    const tags = await Tag.findAll({ where: { tag_id: req.params.id }})
-    const tagIds = tags.map(({ tag_id }) => tag_id);
-    const newTags = req.body.tagIds
-    .filter((tag_id) => !tagIds.includes(tag_id))
-    .map((tag_id) => { return { tag_id: req.params.id, tag_id }})
-    const tagsToRemove = tags
-    .filter(({ tag_id }) => !req.body.tagIds.includes(tag_id))
-    .map(({ id }) => id);
-    const updatedTags = await Promise.all([
-      Tag.destroy({ where: { id: tagsToRemove }}),
-      Tag.bulkCreate(newTags)
-    ])
-    return res.status(200).json(updatedTags)
+    const newTag = await Tag.create(req.body);
+    res.status(200).json(newTag);
   } catch (err) {
-    console.error(err);
-    return res.status(400).json(err)
+    res.status(400).json(err);
   }
 });
 
 // update tag
 router.put('/:id', async (req, res) => {
   try {
-    await Tag.update(req.body, { where: { id: req.params.id }})
-    const tags = await tags.findAll({ where: { product_id: req.params.id }})
-    const tagIds = tags.map(({ tag_id }) => tag_id);
-    const newTags = req.body.tagIds
-    .filter((tag_id) => !tagIds.includes(tag_id))
-    .map((tag_id) => { return { product_id: req.params.id, tag_id }})
-    const tagsToRemove = tags
-    .filter(({ tag_id }) => !req.body.tagIds.includes(tag_id))
-    .map(({ id }) => id);
-    const updatedTags = await Promise.all([
-      tags.destroy({ where: { id: tagsToRemove }}),
-      tags.bulkCreate(newTags)
-    ])
-    return res.status(200).json(updatedTags)
+    const updateTag = await Tag.update(req.body, { 
+      where: { id: req.params.id }
+    })
+    return res.status(200).json(updateTag)
   } catch (err) {
     console.error(err);
     return res.status(400).json(err)
@@ -73,15 +52,11 @@ router.put('/:id', async (req, res) => {
 });
 
 router.delete('/:id', async (req, res) => {
-  // delete one product by its `id` value
+  // delete one tag by its `id` value
   try {
     const deleteTags = await Tag.destroy({
       where: { id: req.params.id }
     });
-    if (!deleteTags) {
-      res.status(404).json({ message: 'No product with this id!' });
-      return;
-    }
     res.status(200).json(deleteTags);
   } catch (err) {
     res.status(500).json(err);

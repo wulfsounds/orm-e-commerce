@@ -50,9 +50,11 @@ Happy Coding!
 
 ## Usage
 
-[View Demo using Goodle Drive](https://drive.google.com/file/d/1tU1hNyAvCGjdUtXim7l2VpWZdmvmdqeP/view)
+[View Demo using Goodle Drive](https://drive.google.com/file/d/1KStE1YvkotVc0fMLpXdiymXclC8HiVv_/view)
 
-![Screenshot](./assets/employee-tracker-screenshot.jpg)
+![Screenshot](./assets/screenshot1.png)
+
+![Screenshot](./assets/screenshot2.jpg)
 
 
 ## Technology
