@@ -66,44 +66,25 @@ router.post('/', async (req, res) => {
 
 // update category
 router.put('/:id', async (req, res) => {
-  // update category data
-  Category.update(req.body, {
-    where: {
-      id: req.params.id,
-    },
-  })
-    .then((category) => {
-      // find all associated tags from Category
-      return Category.findAll({ where: { category_id: req.params.id } });
-    })
-    .then((Categories) => {
-      // get list of current tag_ids
-      const CategoryId = Categories.map(({ tag_id }) => tag_id);
-      // create filtered list of new tag_ids
-      const newCategory = req.body.tagIds
-        .filter((tag_id) => !CategoryId.includes(tag_id))
-        .map((tag_id) => {
-          return {
-            category_id: req.params.id,
-            tag_id,
-          };
-        });
-      // figure out which ones to remove
-      const categoryTagsToRemove = Categories
-        .filter(({ tag_id }) => !req.body.tagIds.includes(tag_id))
-        .map(({ id }) => id);
-
-      // run both actions
-      return Promise.all([
-        Category.destroy({ where: { id: categoryTagsToRemove } }),
-        Category.bulkCreate(newCategory),
-      ]);
-    })
-    .then((updatedCategoryTags) => res.json(updatedCategoryTags))
-    .catch((err) => {
-      // console.log(err);
-      res.status(400).json(err);
-    });
+  try {
+    await Category.update(req.body, { where: { id: req.params.id }})
+    const categoryTags = await categoryTags.findAll({ where: { product_id: req.params.id }})
+    const CategoryTagIds = categoryTags.map(({ tag_id }) => tag_id);
+    const newCategoryTags = req.body.tagIds
+    .filter((tag_id) => !CategoryTagIds.includes(tag_id))
+    .map((tag_id) => { return { product_id: req.params.id, tag_id }})
+    const categoryTagsToRemove = categoryTags
+    .filter(({ tag_id }) => !req.body.tagIds.includes(tag_id))
+    .map(({ id }) => id);
+    const updatedCategoryTags = await Promise.all([
+      categoryTags.destroy({ where: { id: categoryTagsToRemove }}),
+      categoryTags.bulkCreate(newCategoryTags)
+    ])
+    return res.status(200).json(updatedCategoryTags)
+  } catch (err) {
+    console.error(err);
+    return res.status(400).json(err)
+  }
 });
 
 router.delete('/:id', async (req, res) => {

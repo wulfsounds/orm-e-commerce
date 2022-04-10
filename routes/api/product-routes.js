@@ -1,5 +1,5 @@
 const router = require('express').Router();
-const { Product, Category, Tag, ProductTag } = require('../../models');
+const { Product, Category, ProductTag } = require('../../models');
 
 // The `/api/products` endpoint
 
@@ -39,7 +39,7 @@ router.post('/', async (req, res) => {
   try {
     const productData = await Product.create(req.body);
     res.status(200).json(productData);
-  } catch (err) {
+  } catch (err) {-
     res.status(400).json(err);
   }
   Product.create(req.body)
@@ -67,26 +67,25 @@ router.post('/', async (req, res) => {
 // update product
 router.put('/:id', async (req, res) => {
   try {
-    await Product.update(req.body, {where: { id: req.params.id }})
-    // find all associated tags from ProductTag
-    const productTags = ProductTag.findAll({ where: { product_id: req.params.id } });
+    await Product.update(req.body, { where: { id: req.params.id }})
+    const productTags = await ProductTag.findAll({ where: { product_id: req.params.id }})
     const productTagIds = productTags.map(({ tag_id }) => tag_id);
     const newProductTags = req.body.tagIds
-      .filter((tag_id) => !productTagIds.includes(tag_id))
-      .map(({ tag_id }) => { return { product_id: req.params.id, tag_id}})
-    // figure out which ones to remove
+    .filter((tag_id) => !productTagIds.includes(tag_id))
+    .map((tag_id) => { return { product_id: req.params.id, tag_id }})
     const productTagsToRemove = productTags
-      .filter(({ tag_id }) => !req.body.tagIds.includes(tag_id))
-      .map(({ id }) => id);
+    .filter(({ tag_id }) => !req.body.tagIds.includes(tag_id))
+    .map(({ id }) => id);
     const updatedProductTags = await Promise.all([
       ProductTag.destroy({ where: { id: productTagsToRemove }}),
       ProductTag.bulkCreate(newProductTags)
-      ])
+    ])
     return res.status(200).json(updatedProductTags)
   } catch (err) {
-    return res.status(400).json(err);
-  };
-}
+    console.error(err);
+    return res.status(400).json(err)
+  }
+});
 
 router.delete('/:id', async (req, res) => {
   // delete one product by its `id` value
